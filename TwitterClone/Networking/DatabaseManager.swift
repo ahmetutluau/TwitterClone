@@ -1,0 +1,57 @@
+//
+//  DatabaseManager.swift
+//  TwitterClone
+//
+//  Created by Ahmet Utlu on 17.04.2023.
+//
+
+import Foundation
+import Firebase
+import FirebaseFirestore
+import FirebaseFirestoreCombineSwift
+import Combine
+
+class DatabaseManager {
+    static let shared = DatabaseManager()
+    
+    let db = Firestore.firestore()
+    let usersPath = "users"
+    let tweetPath = "tweets"
+    
+    func collectionUsers(add user: User) -> AnyPublisher<Bool, Error> {
+        let twitterUser = TwitterUser(from: user)
+        return db.collection(usersPath).document(twitterUser.id).setData(from: twitterUser)
+            .map { _ in return true}
+            .eraseToAnyPublisher()
+    }
+    
+    func collectionUsers(retreive id: String) -> AnyPublisher<TwitterUser, Error> {
+        db.collection(usersPath).document(id).getDocument()
+            .tryMap { try $0.data(as: TwitterUser.self) }
+            .eraseToAnyPublisher()
+    }
+    
+    func collectionUsers(updateFields: [String: Any], for id: String) -> AnyPublisher<Bool,Error> {
+        db.collection(usersPath).document(id).updateData(updateFields)
+            .map { _ in return true}
+            .eraseToAnyPublisher()
+    }
+    
+    func collectiontweets(dipatch tweet: Tweet) -> AnyPublisher<Bool, Error> {
+        db.collection(tweetPath).document(tweet.id).setData(from: tweet)
+            .map { _ in return true}
+            .eraseToAnyPublisher()
+    }
+    
+    func collectionTweets(retreiveTweets forUserId: String) -> AnyPublisher<[Tweet], Error> {
+        db.collection(tweetPath).whereField("authorId", isEqualTo: forUserId)
+            .getDocuments()
+            .tryMap(\.documents)
+            .tryMap { snapshots in
+            try snapshots.map({
+                try $0.data(as: Tweet.self)
+            })
+        }
+        .eraseToAnyPublisher()
+    }
+}
