@@ -4,9 +4,9 @@ In this project, I aimed to clone twitter using firebase and Combine framework, 
 ## Tech Stack
 
 - Swift 5+
+- Combine
 - Firebase
 - SDWebImage
-- Combine
 - Programmatically UI without Storyboards
 - Reusable UI components
 - MVVM Architectural Pattern
